@@ -119,3 +119,40 @@ VALUES
   (5, 3), -- Eins, Zwei, Polizei в Hit 90
   (7, 2), -- Brother Louie в Rock Collection
   (7, 4); -- Brother Louie в Rock Legend
+  
+INSERT INTO collection (name, year_of_issue)
+VALUES 
+  ('Great Hits 90', '2018-12-31'),
+  ('Great Hits Rock collection', '2019-01-15');
+
+INSERT INTO Performer (name)
+VALUES 
+  ('My & My');
+
+INSERT INTO album (name, date_production)
+VALUES 
+  ('I`m on My Way', '1996-02-16');
+  
+INSERT INTO track (name, album_id , duration)
+VALUES 
+  ('I`m On My Way', (SELECT id FROM album WHERE name = 'I`m on My Way'), 244);
+  
+
+INSERT INTO PerformerGenre (performer_id, genre_id)
+VALUES 
+  (6, 1); -- My & My - pop
+ 
+  
+INSERT INTO AlbumPerformer (album_id, performer_id)
+VALUES 
+  (19, 6); -- I`m On My Way - My & My
+  
+  
+INSERT INTO TrackCollection (track_id, collection_id)
+VALUES 
+  (2, 5), -- Russian Lullaby в Great Hits 90
+  (4, 5), -- Angels Crying в Great Hits 90
+  (6, 5), -- Eins, Zwei, Polizei в Great Hits 90
+  (9, 5), -- I`m On My Way в Great Hits 90
+  (3, 6), -- We Will Rock You в Great Hits Rock Collection
+  (8, 6); -- Brother Louie в Eurodance
