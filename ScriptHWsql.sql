@@ -31,20 +31,22 @@ CREATE TABLE IF NOT EXISTS Genre (
 
 CREATE TABLE IF NOT EXISTS TrackCollection (
     track_id INTEGER REFERENCES Track(id),
-    collection_id INTEGER REFERENCES Collection(id)
+    collection_id INTEGER REFERENCES Collection(id),
+    PRIMARY KEY (track_id, collection_id)
 );
 
 
 CREATE TABLE IF NOT EXISTS AlbumPerformer (
     album_id INTEGER REFERENCES Album(id),
-    performer_id INTEGER REFERENCES Performer(id)
+    performer_id INTEGER REFERENCES Performer(id),
+    PRIMARY KEY (album_id, performer_id)
 );
 
 CREATE TABLE IF NOT EXISTS PerformerGenre (
     genre_id INTEGER REFERENCES Genre(id),
-    performer_id INTEGER REFERENCES Performer(id)
+    performer_id INTEGER REFERENCES Performer(id),
+    PRIMARY KEY (genre_id, performer_id)
 );
-
 
 
 -- вносим данные в таблицу genre 
@@ -111,14 +113,14 @@ VALUES
   
 INSERT INTO TrackCollection (track_id, collection_id)
 VALUES 
-  (1, 1), -- Russian Lullaby в Eurodance
-  (2, 2), -- We Will Rock You в Rock Collection
-  (3, 1), -- Angels Crying в Eurodance
-  (3, 3), -- Angels Crying в Hit 90
-  (5, 1), -- Eins, Zwei, Polizei в Eurodance
-  (5, 3), -- Eins, Zwei, Polizei в Hit 90
-  (7, 2), -- Brother Louie в Rock Collection
-  (7, 4); -- Brother Louie в Rock Legend
+  (2, 1), -- Russian Lullaby в Eurodance
+  (3, 2), -- We Will Rock You в Rock Collection
+  (4, 1), -- Angels Crying в Eurodance
+  (4, 3), -- Angels Crying в Hit 90
+  (6, 1), -- Eins, Zwei, Polizei в Eurodance
+  (6, 3), -- Eins, Zwei, Polizei в Hit 90
+  (8, 2), -- Brother Louie в Rock Collection
+  (8, 4); -- Brother Louie в Rock Legend
   
 INSERT INTO collection (name, year_of_issue)
 VALUES 
@@ -145,7 +147,7 @@ VALUES
   
 INSERT INTO AlbumPerformer (album_id, performer_id)
 VALUES 
-  (19, 6); -- I`m On My Way - My & My
+  (8, 6); -- I`m On My Way - My & My
   
   
 INSERT INTO TrackCollection (track_id, collection_id)
@@ -198,7 +200,7 @@ WHERE LOWER(name) LIKE '%мой%'
 ORDER BY name;
 
 
--- №3 Задание
+-- №3 Задание Подготовка. Наполнение недостающей информации
 INSERT INTO Performer (name)
 VALUES 
   ('Bad Bunny');
@@ -221,10 +223,63 @@ VALUES
   
 INSERT INTO AlbumPerformer (album_id, performer_id)
 VALUES 
-  (9, 7); -- YHLQMDLG - Bad Bunny
+   (9, 7); -- YHLQMDLG - Bad Bunny
   
+-- №3 Задание
   
-  
+-- Количество исполнителей в каждом жанре.
+  SELECT g.name AS genre_name, COUNT(DISTINCT pg.performer_id) AS performer_count
+FROM genre g
+LEFT JOIN performergenre pg ON g.id = pg.genre_id
+GROUP BY g.id, g.name
+ORDER BY performer_count DESC, genre_name;
+
+--Количество треков, вошедших в альбомы 2019–2020 годов.
+SELECT COUNT(t.id) AS track_count
+FROM track t
+JOIN album a ON t.album_id = a.id
+WHERE EXTRACT(YEAR FROM a.date_production) BETWEEN 2019 AND 2020;
+
+--Средняя продолжительность треков по каждому альбому.
+SELECT a.name AS album_name, 
+       AVG(t.duration) AS average_duration
+FROM album a
+JOIN track t ON a.id = t.album_id
+GROUP BY a.id, a.name
+ORDER BY average_duration DESC;
+
+-- Все исполнители, которые не выпустили альбомы в 2020 году.
+SELECT DISTINCT p.name
+FROM Performer p
+WHERE p.id NOT IN (
+    SELECT DISTINCT ap.performer_id
+    FROM AlbumPerformer ap
+    JOIN Album a ON ap.album_id = a.id
+    WHERE EXTRACT(YEAR FROM a.date_production) = 2020
+)
+
+-- Названия сборников, в которых присутствует конкретный исполнитель E-type
+
+SELECT DISTINCT c.name AS collection_name, 
+       EXTRACT(YEAR FROM c.year_of_issue) AS release_year
+FROM collection c
+JOIN trackcollection tc ON c.id = tc.collection_id
+JOIN track t ON tc.track_id = t.id
+JOIN albumperformer ap ON t.album_id = ap.album_id
+JOIN performer p ON ap.performer_id = p.id
+WHERE LOWER(p.name) = LOWER('E-Type')
+ORDER BY release_year, c.name;
+
+ORDER BY p.name;
+
+
+
+
+
+
+
+
+
   
 
 
