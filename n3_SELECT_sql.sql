@@ -8,7 +8,7 @@ WHERE duration = (SELECT MAX(duration) FROM track);
 -- Название треков, продолжительность которых не менее 3,5 минут.
 SELECT name, duration
 FROM track
-WHERE duration >= 240
+WHERE duration >= 210
 ORDER BY duration DESC;
 
 -- Названия сборников, вышедших в период с 2018 по 2020 год включительно.
@@ -34,8 +34,20 @@ ORDER BY name;
 -- Название треков, которые содержат слово «мой» или «my»
 SELECT name
 FROM track
-WHERE LOWER(name) LIKE '%мой%'
-   OR LOWER(name) LIKE '%my%'
+WHERE name ILIKE '% мой %'
+   OR name ILIKE 'мой %'
+   OR name ILIKE '% мой'
+   OR name ILIKE 'мой'
+   OR name ILIKE '% my %'
+   OR name ILIKE 'my %'
+   OR name ILIKE '% my'
+   OR name ILIKE 'my'
+ORDER BY name;
+
+--Название треков, которые содержат слово «мой» или «my» вариант №2
+SELECT name
+FROM track
+WHERE string_to_array(lower(name), ' ') && ARRAY['мой', 'my']
 ORDER BY name;
 
   
@@ -84,11 +96,14 @@ ORDER BY release_year, c.name;
 
 
 -- Названия альбомов, в которых присутствуют исполнители более чем одного жанра.
-SELECT g.name AS genre_name, COUNT(DISTINCT pg.performer_id) AS performer_count
-FROM genre g
-LEFT JOIN performergenre pg ON g.id = pg.genre_id
-GROUP BY g.id, g.name
-ORDER BY performer_count DESC, genre_name;
+SELECT DISTINCT a.name
+FROM album a
+JOIN albumperformer ap ON a.id = ap.album_id
+JOIN performer p ON ap.performer_id = p.id
+JOIN performergenre pg ON p.id = pg.performer_id
+GROUP BY a.id, a.name, ap.performer_id
+HAVING COUNT(DISTINCT pg.genre_id) > 1
+ORDER BY a.name;
 
 -- Наименования треков, которые не входят в сборники.
 SELECT t.name AS track_name

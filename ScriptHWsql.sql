@@ -270,8 +270,48 @@ JOIN performer p ON ap.performer_id = p.id
 WHERE LOWER(p.name) = LOWER('E-Type')
 ORDER BY release_year, c.name;
 
+
+-- Названия альбомов, в которых присутствуют исполнители более чем одного жанра.
+SELECT g.name AS genre_name, COUNT(DISTINCT pg.performer_id) AS performer_count
+FROM genre g
+LEFT JOIN performergenre pg ON g.id = pg.genre_id
+GROUP BY g.id, g.name
+ORDER BY performer_count DESC, genre_name;
+
+-- Наименования треков, которые не входят в сборники.
+SELECT t.name AS track_name
+FROM track t
+LEFT JOIN trackcollection tc ON t.id = tc.track_id
+WHERE tc.collection_id IS NULL
+ORDER BY t.name;
+
+-- Исполнитель или исполнители, написавшие самый короткий по продолжительности трек, — теоретически таких треков может быть несколько.
+SELECT DISTINCT p.name AS performer_name
+FROM performer p
+JOIN albumperformer ap ON p.id = ap.performer_id
+JOIN album a ON ap.album_id = a.id
+JOIN track t ON a.id = t.album_id
+WHERE t.duration = (
+    SELECT MIN(duration)
+    FROM track
+)
 ORDER BY p.name;
 
+
+-- Названия альбомов, содержащих наименьшее количество треков.
+SELECT a.name AS album_name, COUNT(t.id) AS track_count
+FROM album a
+LEFT JOIN track t ON a.id = t.album_id
+GROUP BY a.id, a.name
+HAVING COUNT(t.id) = (
+    SELECT COUNT(t2.id)
+    FROM album a2
+    LEFT JOIN track t2 ON a2.id = t2.album_id
+    GROUP BY a2.id
+    ORDER BY COUNT(t2.id) ASC
+    LIMIT 1
+)
+ORDER BY a.name;
 
 
 
